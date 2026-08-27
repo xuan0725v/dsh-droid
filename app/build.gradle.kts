@@ -10,8 +10,8 @@ android {
         minSdk = 26
         // targetSdk 28: 允许执行 app 数据目录内的二进制（proot 需要，参考 Termux）
         targetSdk = 28
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.1.1"
     }
     buildTypes {
         getByName("release") { isMinifyEnabled = false }
