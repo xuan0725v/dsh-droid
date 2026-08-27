@@ -34,9 +34,12 @@ object ProotManager {
 
     fun ensureSeed(ctx: Context) {
         this.ctx = ctx
-        val mark = File(ctx.filesDir, ".seed-v1")
+        // v2：runtime 换 linux-arm64 原生件 + node 升 24，旧版解出的内容必须作废重解
+        val mark = File(ctx.filesDir, ".seed-v2")
         if (mark.exists()) return
         val root = File(ctx.filesDir, "ubuntu")
+        // 清掉旧 runtime（可能解到一半/含 win32 坏件）；dsh-home 不动，保留用户配置
+        if (root.exists()) root.deleteRecursively()
         unpack(ctx, "rootfs.tar.gz", root)
         unpack(ctx, "dsh-runtime.tgz", File(root, "usr/local/lib/node_modules"))
         unpack(ctx, "dsh-home-seed.tgz", File(ctx.filesDir, "dsh-home"))
