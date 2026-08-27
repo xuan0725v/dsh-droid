@@ -31,7 +31,7 @@ class UpdaterActivity : Activity() {
             } catch (e: Exception) { "ERR: $e" }
             val tag = Regex("\"tag_name\"\\s*:\\s*\"([^\"]+)\"").find(r)?.groupValues?.get(1) ?: "未知"
             runOnUiThread {
-                out.text = "上游最新版本: $tag\n本机构建版本: 0.1.0\n\n" +
+                out.text = "上游最新版本: $tag\n本机构建版本: 0.1.1\n\n" +
                     "内容更新方式：\n1. 打开本项目的 GitHub 仓库\n2. Actions 页签 → build → Run workflow\n" +
                     "3. 构建完成后下载 app-debug.apk 覆盖安装\n（你的会话与配置在覆盖安装后完整保留）\n\n" +
                     "上游 release 每次更新后重新构建一次，内容即自动跟进（种子来自上游最新安装包）。"
