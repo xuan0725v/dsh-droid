@@ -18,15 +18,13 @@ curl -sL --retry 3 -o /tmp/node.tar.xz "https://nodejs.org/dist/${NODE_V}/node-$
 tar xJf /tmp/node.tar.xz -C /tmp
 cp "/tmp/node-${NODE_V}-linux-arm64/bin/node" "$A/jniLibs/arm64-v8a/libnode.so"
 
-echo "══ 3/5 proot (termux arm64) ══"
-PROOT_REL=$(curl -s "https://packages.termux.dev/apt/termux-main/dists/stable/main/binary-arm64/Packages" \
-  | grep -A25 "^Package: proot$" | grep "^Filename:" | head -1 | cut -d" " -f2)
-curl -sL --retry 3 -o /tmp/proot.deb "https://packages.termux.dev/apt/termux-main/${PROOT_REL}"
-mkdir -p /tmp/pd && cd /tmp/pd
-ar x ../proot.deb
-tar xf data.tar.* 2>/dev/null || tar xf data.tar.xz
-cp data/data/com.termux/files/usr/bin/proot "$OLDPWD/$A/jniLibs/arm64-v8a/libproot.so"
-cd "$OLDPWD"
+echo "══ 3/5 proot (官方静态 aarch64) ══"
+PROOT_URL=$(curl -s "https://api.github.com/repos/proot-me/proot/releases/latest" \
+  | python3 -c "import json,sys;[print(a['browser_download_url']) for a in json.load(sys.stdin)['assets'] if 'aarch64' in a['name'] and 'static' in a['name']]" | head -1)
+echo "proot: $PROOT_URL"
+curl -sL --retry 3 -o /tmp/proot.bin "$PROOT_URL"
+file /tmp/proot.bin | grep -qi ELF
+cp /tmp/proot.bin "$A/jniLibs/arm64-v8a/libproot.so"
 
 echo "══ 4/5 上游 dsh-starter 最新 release 内容 ══"
 REL_URL=$(curl -s "https://api.github.com/repos/sryimnoob123/dsh-starter/releases/latest" \
