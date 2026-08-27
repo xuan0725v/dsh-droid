@@ -7,25 +7,27 @@ mkdir -p "$A/assets" "$A/jniLibs/arm64-v8a" /tmp/da
 MIRROR="${GH_MIRROR:-}"   # 可选 GitHub 镜像前缀，如 https://ghfast.top/
 gh() { echo "${MIRROR}$1"; }
 
-echo "══ 1/5 ubuntu rootfs (arm64) ══"
+echo "══ 1/6 ubuntu rootfs (arm64) ══"
 curl -sL --retry 3 -o /tmp/rootfs.tar.gz \
   "https://cdimage.ubuntu.com/ubuntu-base/releases/22.04/release/ubuntu-base-22.04.5-base-arm64.tar.gz"
 cp /tmp/rootfs.tar.gz "$A/assets/rootfs.tar.gz"
 
-echo "══ 2/5 node (arm64, glibc) ══"
-NODE_V=v22.14.0
+echo "══ 2/6 node (arm64, glibc) ══"
+# v24 必须 ≥23.8：dsh 0.1.1-rc.x 的会话持久化用 node:zlib 的 zstd API
+# （createZstdDecompress 等），v22 没有该 API → 插件树加载即崩（实测）
+NODE_V=v24.19.0
 curl -sL --retry 3 -o /tmp/node.tar.xz "https://nodejs.org/dist/${NODE_V}/node-${NODE_V}-linux-arm64.tar.xz"
 tar xJf /tmp/node.tar.xz -C /tmp
 cp "/tmp/node-${NODE_V}-linux-arm64/bin/node" "$A/jniLibs/arm64-v8a/libnode.so"
 
-echo "══ 3/5 proot (官方静态 aarch64) ══"
+echo "══ 3/6 proot (官方静态 aarch64) ══"
 PROOT_URL="https://github.com/proot-me/proot/releases/download/v5.3.0/proot-v5.3.0-aarch64-static"
 echo "proot: $PROOT_URL"
 curl -sL --retry 3 -o /tmp/proot.bin "$PROOT_URL"
 file /tmp/proot.bin | grep -qi ELF
 cp /tmp/proot.bin "$A/jniLibs/arm64-v8a/libproot.so"
 
-echo "══ 4/5 上游 dsh-starter 最新 release 内容 ══"
+echo "══ 4/6 上游 dsh-starter 最新 release 内容 ══"
 REL_URL=$(curl -s "https://api.github.com/repos/sryimnoob123/dsh-starter/releases/latest" \
   | python3 -c "import json,sys;print(json.load(sys.stdin)['assets'][0]['browser_download_url'])")
 curl -sL --retry 3 -o /tmp/setup.exe "$(gh "$REL_URL")"
@@ -34,7 +36,10 @@ curl -sL --retry 3 -o /tmp/setup.exe "$(gh "$REL_URL")"
 cp /tmp/app64/dsh-archives/dsh-runtime.tgz   "$A/assets/"
 cp /tmp/app64/dsh-archives/dsh-home-seed.tgz "$A/assets/"
 
-echo "══ 5/5 壳内置插件（asar.unpacked → 按包名归位）═══"
+echo "══ 5/6 修复 runtime 平台原生件（win32 → linux-arm64）══"
+bash scripts/fix-runtime-native.sh "$A/assets/dsh-runtime.tgz"
+
+echo "══ 6/6 壳内置插件（asar.unpacked → 按包名归位）═══"
 7z x '/tmp/nsis/$PLUGINSDIR/app-64.7z' -o/tmp/app64 'resources/app.asar.unpacked/plugins/*' -y > /dev/null
 SRC=/tmp/app64/resources/app.asar.unpacked/plugins
 STAGE=/tmp/host-plugins/profiles/web/node_modules
