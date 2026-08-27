@@ -40,10 +40,10 @@ object ProotManager {
         val root = File(ctx.filesDir, "ubuntu")
         // 清掉旧 runtime（可能解到一半/含 win32 坏件）；dsh-home 不动，保留用户配置
         if (root.exists()) root.deleteRecursively()
-        unpack(ctx, "rootfs.tar.gz", root)
+        unpack(ctx, "rootfs.tgz", root)
         unpack(ctx, "dsh-runtime.tgz", File(root, "usr/local/lib/node_modules"))
         unpack(ctx, "dsh-home-seed.tgz", File(ctx.filesDir, "dsh-home"))
-        unpack(ctx, "host-plugins.tar.gz", File(ctx.filesDir, "dsh-home/profiles/web/node_modules"))
+        unpack(ctx, "host-plugins.tgz", File(ctx.filesDir, "dsh-home/profiles/web/node_modules"))
         // DNS：ubuntu-base 默认走 systemd-resolved（容器里没有），换成公共 DNS
         File(root, "etc/resolv.conf").writeText("nameserver 8.8.8.8\nnameserver 1.1.1.1\n")
         mark.writeText(System.currentTimeMillis().toString())
