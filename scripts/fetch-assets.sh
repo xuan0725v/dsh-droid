@@ -19,8 +19,7 @@ tar xJf /tmp/node.tar.xz -C /tmp
 cp "/tmp/node-${NODE_V}-linux-arm64/bin/node" "$A/jniLibs/arm64-v8a/libnode.so"
 
 echo "══ 3/5 proot (官方静态 aarch64) ══"
-PROOT_URL=$(curl -s "https://api.github.com/repos/proot-me/proot/releases/latest" \
-  | python3 -c "import json,sys;[print(a['browser_download_url']) for a in json.load(sys.stdin)['assets'] if 'aarch64' in a['name'] and 'static' in a['name']]" | head -1)
+PROOT_URL="https://github.com/proot-me/proot/releases/download/v5.3.0/proot-v5.3.0-aarch64-static"
 echo "proot: $PROOT_URL"
 curl -sL --retry 3 -o /tmp/proot.bin "$PROOT_URL"
 file /tmp/proot.bin | grep -qi ELF
