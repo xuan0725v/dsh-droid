@@ -10,7 +10,8 @@ gh() { echo "${MIRROR}$1"; }
 echo "══ 1/6 ubuntu rootfs (arm64) ══"
 curl -sL --retry 3 -o /tmp/rootfs.tar.gz \
   "https://cdimage.ubuntu.com/ubuntu-base/releases/22.04/release/ubuntu-base-22.04.5-base-arm64.tar.gz"
-cp /tmp/rootfs.tar.gz "$A/assets/rootfs.tar.gz"
+# 用 .tgz 后缀：AGP 会把 .tar.gz 自动解压成明文 .tar 并改名，而 .tgz 原样保留
+cp /tmp/rootfs.tar.gz "$A/assets/rootfs.tgz"
 
 echo "══ 2/6 node (arm64, glibc) ══"
 # v24 必须 ≥23.8：dsh 0.1.1-rc.x 的会话持久化用 node:zlib 的 zstd API
@@ -49,7 +50,7 @@ while IFS= read -r pj; do
   DIR="$STAGE/$NAME"; mkdir -p "$DIR"
   cp -a "$(dirname "$pj")/." "$DIR/"
 done < <(find "$SRC" -name package.json -maxdepth 4)
-tar czf "$A/assets/host-plugins.tar.gz" -C /tmp/host-plugins profiles
+tar czf "$A/assets/host-plugins.tgz" -C /tmp/host-plugins profiles
 
 echo "══ assets 清单 ══"
 ls -la "$A/assets" "$A/jniLibs/arm64-v8a"
