@@ -23,6 +23,9 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // 请求存储权限：把启动日志写到 Download/DSHA/dsh-droid.log 供诊断
+        if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != android.content.pm.PackageManager.PERMISSION_GRANTED)
+            requestPermissions(arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE), 1)
 
         // ── 标题栏（复刻 dsh-starter：Codex 风格深色 + 自绘按钮）──
         val bar = LinearLayout(this).apply {
@@ -52,7 +55,9 @@ class MainActivity : Activity() {
             text = "  正在启动服务…"
             setBackgroundColor(0xFF0F1420.toInt()); setTextColor(0xFF8B96AB.toInt())
             setPadding(28, 10, 28, 10); textSize = 12f
-        }
+            movementMethod = android.text.method.ScrollingMovementMethod()
+            isVerticalScrollBarEnabled = true
+            setSingleLine(false); maxLines = 12
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             addView(bar)
@@ -87,12 +92,17 @@ class MainActivity : Activity() {
                         web.loadUrl("http://127.0.0.1:${ProotManager.PORT}/")
                     }
                     ok && loaded -> {}
-                    !ok && tries < 120 -> {
+                    !ok && tries < 90 -> {
                         tries++
                         status.text = "  ⏳ 启动中… ${tries * 2}s（首次需解压运行时，请稍候）"
                         handler.postDelayed({ poll() }, 2000)
                     }
-                    else -> status.text = "  ❌ 服务未能启动，请下拉通知栏后重试，或查看 files/dsh.log"
+                    else -> {
+                        // 启动失败：把 dsh.log 尾部显示在屏幕上，便于诊断
+                        val log = java.io.File(filesDir, "dsh.log")
+                        val tail = if (log.exists()) log.readText().takeLast(1800) else "(无 dsh.log)"
+                        status.text = "  ❌ 服务未能启动，日志尾部：\n$tail"
+                    }
                 }
             }
         }.start()
