@@ -27,15 +27,31 @@ class DshService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (thread?.isAlive == true) return START_STICKY
         thread = Thread {
+            val privLog = File(filesDir, "dsh.log")
+            val pubLog = File("/sdcard/Download/DSHA/dsh-droid.log")
             try {
+                pubLog.parentFile?.mkdirs()
                 ProotManager.ensureSeed(this)
                 val p = ProotManager.start(this)
                 proc = p
-                File(filesDir, "dsh.log").outputStream().use { out ->
-                    p.inputStream.copyTo(out)
+                privLog.writeText("")  // 每次启动清空，便于定位本次
+                // 边读边写并即时刷盘：崩溃前最后几行也能落盘
+                val buf = ByteArray(4096); var n: Int
+                privLog.outputStream().use { out ->
+                    while (p.inputStream.read(buf).also { n = it } > 0) {
+                        out.write(buf, 0, n); out.flush()
+                        try { pubLog.appendBytes(buf.copyOfRange(0, n)) } catch (_: Exception) {}
+                    }
                 }
+                // 进程结束（含被信号杀死）后记录退出码
+                val code = p.waitFor()
+                val tail = "\n[dsh-droid] proot/node 进程结束 exit=$code\n"
+                privLog.appendText(tail)
+                try { pubLog.appendText(tail) } catch (_: Exception) {}
             } catch (t: Throwable) {
-                File(filesDir, "dsh.log").appendText("\n[ERROR] $t")
+                val e = "\n[ERROR] $t\n"
+                privLog.appendText(e)
+                try { pubLog.appendText(e) } catch (_: Exception) {}
             }
         }.also { it.start() }
         return START_STICKY
