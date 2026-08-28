@@ -58,6 +58,7 @@ class MainActivity : Activity() {
             movementMethod = android.text.method.ScrollingMovementMethod()
             isVerticalScrollBarEnabled = true
             setSingleLine(false); maxLines = 12
+        }
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             addView(bar)
